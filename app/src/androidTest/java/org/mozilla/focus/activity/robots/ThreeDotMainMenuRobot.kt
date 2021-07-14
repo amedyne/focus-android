@@ -4,6 +4,7 @@
 
 package org.mozilla.focus.activity.robots
 
+import androidx.test.espresso.Espresso
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.assertion.ViewAssertions.matches
@@ -13,10 +14,14 @@ import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.uiautomator.UiSelector
 import junit.framework.TestCase.assertTrue
+import org.junit.Assert
 import org.mozilla.focus.R
+import org.mozilla.focus.helpers.TestHelper
 import org.mozilla.focus.helpers.TestHelper.mDevice
 import org.mozilla.focus.helpers.TestHelper.packageName
 import org.mozilla.focus.helpers.TestHelper.waitingTime
+import org.mozilla.focus.helpers.TestHelper.webPageLoadwaitingTime
+import org.mozilla.focus.idlingResources.SessionLoadedIdlingResource
 
 class ThreeDotMainMenuRobot {
 
@@ -66,8 +71,8 @@ class ThreeDotMainMenuRobot {
         fun openSettings(interact: SettingsRobot.() -> Unit): SettingsRobot.Transition {
             mDevice.findObject(UiSelector().text("Settings")).waitForExists(waitingTime)
             settingsMenuButton
-                .check(matches(isDisplayed()))
-                .perform(click())
+                    .check(matches(isDisplayed()))
+                    .perform(click())
 
             SettingsRobot().interact()
             return SettingsRobot.Transition()
@@ -96,8 +101,8 @@ class ThreeDotMainMenuRobot {
 
         fun clickWhatsNewLink(interact: BrowserRobot.() -> Unit): BrowserRobot.Transition {
             whatsNewMenuLink
-                .check(matches(isDisplayed()))
-                .perform(click())
+                    .check(matches(isDisplayed()))
+                    .perform(click())
 
             BrowserRobot().interact()
             return BrowserRobot.Transition()
@@ -105,8 +110,24 @@ class ThreeDotMainMenuRobot {
 
         fun clickHelpPageLink(interact: BrowserRobot.() -> Unit): BrowserRobot.Transition {
             helpPageMenuLink
-                .check(matches(isDisplayed()))
-                .perform(click())
+                    .check(matches(isDisplayed()))
+                    .perform(click())
+
+            BrowserRobot().interact()
+            return BrowserRobot.Transition()
+        }
+
+        fun refreshPage(interact: BrowserRobot.() -> Unit): BrowserRobot.Transition {
+            val sessionLoadedIdlingResource = SessionLoadedIdlingResource()
+            runWithIdleRes(sessionLoadedIdlingResource) {
+                onView(withId(R.id.refresh))
+                        .check(matches(isDisplayed()))
+                        .perform(click())
+
+                assertTrue(
+                        BrowserRobot().progressBar.waitUntilGone(webPageLoadwaitingTime)
+                )
+            }
 
             BrowserRobot().interact()
             return BrowserRobot.Transition()
@@ -117,15 +138,15 @@ class ThreeDotMainMenuRobot {
 private val settingsMenuButton = onView(withId(R.id.settings))
 
 private val shareBtn = mDevice.findObject(
-    UiSelector()
-        .resourceId("$packageName:id/share")
+        UiSelector()
+                .resourceId("$packageName:id/share")
 )
 
 private val threeDotMenuButton = onView(withId(R.id.mozac_browser_toolbar_menu))
 
 private val addToHSmenuItem = mDevice.findObject(
-    UiSelector()
-        .resourceId("$packageName:id/add_to_homescreen")
+        UiSelector()
+                .resourceId("$packageName:id/add_to_homescreen")
 )
 
 private val findInPageButton = onView(withId(R.id.find_in_page))
